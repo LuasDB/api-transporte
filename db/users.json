@@ -1,0 +1,32 @@
+{
+    "Users":[
+        {
+            "id":"adfwerewfds",
+            "name":"Saul",
+            "age":33,
+            "ine":true
+        },
+        {
+            "name":"Marco",
+            "age":33,
+            "ine":false
+        },
+        {
+            "name":"Andy",
+            "age":33,
+            "ine":true
+        },
+        {
+            "name":"Moni",
+            "age":36,
+            "ine":true
+        },
+        {
+            "name":"Belen",
+            "age":35,
+            "ine":false
+        }
+
+    ]
+    
+  }

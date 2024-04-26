@@ -1,0 +1,30 @@
+{
+  "name": "api-transporte",
+  "version": "1.0.0",
+  "description": "API REST para aplicacion de transporte",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/LuasDB/api-transporte.git"
+  },
+  "keywords": [
+    "API"
+  ],
+  "author": "Marco/Saul",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LuasDB/api-transporte/issues"
+  },
+  "homepage": "https://github.com/LuasDB/api-transporte#readme",
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
