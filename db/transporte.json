@@ -1,0 +1,12 @@
+{
+  "vehicles":[
+    {
+      "id":"883hgdj",
+      "tipo":"trailer",
+      "marca":"Volvo",
+      "modelo":"Training",
+      "año":2010,
+      "activo",true
+    }
+  ]
+}
