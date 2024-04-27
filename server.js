@@ -25,3 +25,4 @@ server.listen(port,()=>{
     console.log('Servidor inicial');
     
 })
+echo ="Hola";
