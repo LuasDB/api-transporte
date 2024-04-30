@@ -30,6 +30,9 @@ app.use(express.json())
 routerAPI(app);
 
 
+//Inicio de estaticos
+app.use('/descargas',express.static("imagen"));
+
 server.listen(port,()=>{
     console.log('Servidor inicial');
     

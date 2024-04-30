@@ -13,6 +13,7 @@ class User {
         console.log(data)
 
         return {
+            
             newData:data,
             msg:"Usuario creado"
         }
