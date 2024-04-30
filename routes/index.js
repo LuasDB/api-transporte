@@ -1,4 +1,6 @@
+//Se llama la variable express para el servidor
 const express = require('express');
+//importacion de la ruta de usuarios
 const usersRouter = require("./users.router.js");
 
 function routerApi(app){

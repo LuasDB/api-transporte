@@ -1,5 +1,6 @@
+//importacion de los datos
 const db= require('../db/users.json')
-
+//definicion de la clase con varios objetos
 class User {
     constructor(){
         this.name = "Marco"
@@ -28,9 +29,5 @@ class User {
     delete(){}
 
 }
-
-
-
-
 
 module.exports = User;

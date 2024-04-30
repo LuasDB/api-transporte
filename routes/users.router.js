@@ -1,6 +1,9 @@
 
+//llamado de express
 const express = require('express');
+//Metodo router de express
 const router = express.Router();
+//importacion del servicio
 const User = require("../services/users.service.js");
 
 const user = new User();
