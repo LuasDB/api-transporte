@@ -30,7 +30,7 @@ app.use(express.json())
 routerAPI(app);
 
 
-//Inicio de estaticos
+//Inicio de estaticos para poder renderizar los archivos de imagen
 app.use('/descargas',express.static("imagen"));
 
 server.listen(port,()=>{
