@@ -23,8 +23,13 @@ class User {
         return datos;
 
     }
-    getOne(){
-
+    getOne(ID){
+        //Llamar todos los datos
+        const datos = db.Users
+        //buscar mi ID en los datos con el metodo find
+        const user = datos.find(item=> item.id === ID)
+        console.log(user);
+        return user;
     }
     updateOne(){}
     delete(){}

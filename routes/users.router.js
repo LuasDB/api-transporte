@@ -18,6 +18,16 @@ router.get('/',(req,res)=>{
     res.status(200).json(users);
 
 })
+router.get('/:IDUser',(req,res)=>{
+    // const q = req.params
+    //Se destructurar osea sacar una parte de req.params y se guarda en la variable
+    const {IDUser} = req.params
+//en res se asigna un estatus despues se convierte un objeto resp el valor de los params
+    const getUser =user.getOne(IDUser);
+    res.status(200).json(getUser);
+    
+
+})
 //usar multer para verificar
 /////////////////////7/////////////////////////////////////////////////////////////7
 /**

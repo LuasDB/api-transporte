@@ -6,7 +6,24 @@
       "marca":"Volvo",
       "modelo":"Training",
       "año":2010,
-      "activo",true
+      "activo":true
+    },
+    {
+      "id":"883wefs",
+      "tipo":"camion",
+      "marca":"Volvo",
+      "modelo":"Training",
+      "año":2010,
+      "activo":true
+    },
+    {
+      "id":"84ijdigdj",
+      "tipo":"trailer",
+      "marca":"Netword",
+      "modelo":"Training",
+      "año":2010,
+      "activo":true
     }
+
   ]
 }
