@@ -7,33 +7,98 @@ const router = express.Router();
 const User = require("../services/users.service.js");
 //importar multer
 const multer = require('multer');
+const { getToken } = require('firebase/app-check');
+//Creamos una instamcia de ,ulter para cuando no se reciben archivos
+const uploadNone = multer()
+
+
 //crea nuevo instancia de la clase usuario
 const user = new User();
 /**
- * Endpoint (Rutas de para la funcion)
- * 
+ * Endpoints (Rutas de para la funcion)
  */
-router.get('/',(req,res)=>{
-    let users = user.getAll();
-    res.status(200).json(users);
+router.get('/',async(req,res,next)=>{
+  //usamos siempre Try catch para cachear si llega a haber algun error en las funciones asincronas
+  try {
+   const getAllUsers = await user.getAll()
+   res.status(200).json(getAllUsers);
+
+  } catch (error) {
+   next(error)
+  }
+})
+router.post('/',uploadNone.none(),async(req,res,next)=>{
+  try {
+    let data =req.body;
+    console.log(data)
+    let newUser = await user.createUser(data);
+    //Si se realiza el alta enviamos un res con el status code 201 de CREADO , en formato json donde encviamos lo que llego a newUser
+    res.status(201).json(newUser);
+
+  } catch (error) {
+    next(error)
+  }
+
 
 })
-router.get('/:IDUser',(req,res)=>{
-    // const q = req.params
-    //Se destructurar osea sacar una parte de req.params y se guarda en la variable
-    const {IDUser} = req.params
-//en res se asigna un estatus despues se convierte un objeto resp el valor de los params
-    const getUser =user.getOne(IDUser);
+router.get('/:id',async(req,res,next)=>{
+
+    //Se destructurar req.params para sacar la variable "id" que viene descrita en la url del endpoint
+    const { id } = req.params
+    try {
+      //Declaramos una variable donde recibirtemos lo que retorne el metodo getOne(id) de la instancia user
+    const getUser = await user.getOne(id);
+    //Si se recibe bien enviamos de vuelta usando res
     res.status(200).json(getUser);
-    
+
+    } catch (error) {
+      next(error)
+    }
+
+
+
+
+})
+router.patch('/:id',uploadNone.none(),async(req,res,next)=>{
+  const { id } = req.params
+  const { body } =req
+
+  try {
+    const update = await user.updateOne(id,body);
+    res.status(201).json(update);
+
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.delete('/:id',uploadNone.none(),async(req,res,next)=>{
+
+
+  const { id } = req.params
+  const { body } = req
+  try {
+
+  const deleteUser = await user.deleteOne(id,body);
+
+  res.status(200).json(deleteUser);
+
+  } catch (error) {
+   next(error)
+  }
+
+
+
 
 })
 //usar multer para verificar
 /////////////////////7/////////////////////////////////////////////////////////////7
 /**
  * Configuracion multer para subida, guardado y vista de archivos
- * 
+ *
  */
+
+
 //agregar metodo diskstorage
 const storagePrep = multer.diskStorage({
     destination:function(req,file,cb){
@@ -44,20 +109,13 @@ const storagePrep = multer.diskStorage({
     }
 })
 /**
- * 
+ *
  */
-const uploadNone = multer()
+
 
 const uploadFile = multer({storage:storagePrep});
 
-//usar el upload
-router.post('/',uploadNone.none(),(req,res)=>{
 
-    let data =req.body;
-    console.log(data);
-    let newUser = user.createOne(data);
-    res.status(201).json(newUser);
-})
 router.post('/imagen',uploadFile.single('foto'),(req,res,next)=>{
     console.log("Entrando a imagen")
     const {body} = req

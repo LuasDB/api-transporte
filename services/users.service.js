@@ -1,38 +1,73 @@
-//importacion de los datos
-const db= require('../db/users.json')
+//importacion de la base de firestore
+const { experimentalSetDeliveryMetricsExportedToBigQueryEnabled } = require('firebase/messaging/sw');
+const { db } = require('../db/firebase');
 //definicion de la clase con varios objetos
 class User {
-    constructor(){
-        this.name = "Marco"
-    }
-    getName(){
-        return this.name
-    }
-    //Envio a bd nuevos datos
-    createOne(data){
-        console.log(data)
+  constructor(){
+      this.name = "Marco"
+  }
 
-        return {
-            
-            newData:data,
-            msg:"Usuario creado"
-        }
-    }
-    getAll(){
-        const datos = db.Users;
-        return datos;
+/*****************************************************************************************************************
+ * SUPER IMPORTANTE
+ *Cada metodo de nuestra clase User devolvera algo para indicar si se llevo a cabo o no la logica de nogocio
+ *
+ * Para estandarizar usaremos las siguientes variables, que siempre seran las mismas cuando aplique:
+ * success: true o false --> esta variable indicara si se realizo correctamentye la acción
+ * message: 'Mensaje que indique algo importante'
+ * data: objeto --> cuando se trate de datos que se deben retornar se enviartan en esta variable
+ *
+ *
+******************************************************************************************************************/
 
+
+
+  //Metodo de la calse para la creacion de un nuevo usuario
+  async createUser(data){
+    console.log('Lega:',data)
+    const addNewUser = await db.collection('users').add(data);
+    console.log(addNewUser)
+    if(addNewUser.id){
+      return {
+        data:{...data,id:addNewUser.id
+        },
+        success:true,
+        message:'Creado con exito'
     }
-    getOne(ID){
-        //Llamar todos los datos
-        const datos = db.Users
-        //buscar mi ID en los datos con el metodo find
-        const user = datos.find(item=> item.id === ID)
-        console.log(user);
-        return user;
+    }else{
+      return {success:false,message:'No creado'}
     }
-    updateOne(){}
-    delete(){}
+
+
+
+
+  }
+  async getAll(){
+    const getUsers = await db.collection('users').where('status','==','Activo').get();
+    const users = getUsers.docs.map(item => ({id:item.id,...item.data()}))
+    return {
+      success:true,
+      data: users
+    }
+  }
+  async getOne(id){
+    const getUser = await db.collection('users').doc(id).get();
+    if(!getUser.exists){
+      return { success:false,message:'No encontrado'}
+    }
+    return {
+      success:true,
+      data:getUser.data()
+    }
+  }
+  async updateOne(id,newData){
+    const update = await db.collection('users').doc(id).update(newData);
+    console.log(update)
+    return { success:true, message:'Actualizado',data:update}
+  }
+  async deleteOne(id,data){
+     await this.updateOne(id,data);
+
+  }
 
 }
 

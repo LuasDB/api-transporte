@@ -11,23 +11,19 @@ const app = express();
 const port =process.env.PORT || 3000;
 //
 const server = require('http').Server(app);
-//aqui se golpean los endpoints
-app.get('/',(req,res)=>{
-    res.send('Este es el send');
-})
-//Endpoint de inicio
-app.get('/inicio',(req,res)=>{
-    res.send('Este es el inicio');
-})
-//Endpoint de registros
-app.get('/registros',(req,res)=>{
-    res.send('Se ven los registros aqui');
-})
-app.get('/registros2',(req,res)=>{
-    res.send('Se ven los registros aqui 2');
-})
+//Instalacion de cors
+const cors = require('cors')
+
+const { logErrors, errorHandle } = require('./middleware/error.handler')
+
+
+app.use(cors());
 app.use(express.json())
 routerAPI(app);
+
+//Aqui vamos a declarar los middlewares
+app.use(logErrors);
+app.use(errorHandle);
 
 
 //Inicio de estaticos para poder renderizar los archivos de imagen
@@ -35,5 +31,5 @@ app.use('/descargas',express.static("imagen"));
 
 server.listen(port,()=>{
     console.log('Servidor inicial');
-    
+
 })
