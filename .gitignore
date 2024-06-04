@@ -130,3 +130,4 @@ dist
 .pnp.*
 
 imagen/
+credentials.json
