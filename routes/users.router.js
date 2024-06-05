@@ -1,4 +1,3 @@
-
 //llamado de express
 const express = require('express');
 //Metodo router de express
@@ -7,7 +6,7 @@ const router = express.Router();
 const User = require("../services/users.service.js");
 //importar multer
 const multer = require('multer');
-const { getToken } = require('firebase/app-check');
+const { schemaUsers } = require('../schemas/scheamas.js');
 //Creamos una instamcia de ,ulter para cuando no se reciben archivos
 const uploadNone = multer()
 
@@ -29,8 +28,10 @@ router.get('/',async(req,res,next)=>{
 })
 router.post('/',uploadNone.none(),async(req,res,next)=>{
   try {
+
     let data =req.body;
-    console.log(data)
+    schemaUsers.parse(data);
+    console.log('[PRUEBA DE LLEGADA]:',data)
     let newUser = await user.createUser(data);
     //Si se realiza el alta enviamos un res con el status code 201 de CREADO , en formato json donde encviamos lo que llego a newUser
     res.status(201).json(newUser);
@@ -65,21 +66,20 @@ router.patch('/:id',uploadNone.none(),async(req,res,next)=>{
 
   try {
     const update = await user.updateOne(id,body);
-    res.status(201).json(update);
+    res.status(200).json(update);
+    console.log('[message]:',update.message)
 
   } catch (error) {
     next(error)
   }
 })
-
-router.delete('/:id',uploadNone.none(),async(req,res,next)=>{
-
+router.delete('/:id',async(req,res,next)=>{
 
   const { id } = req.params
-  const { body } = req
+
   try {
 
-  const deleteUser = await user.deleteOne(id,body);
+  const deleteUser = await user.deleteOne(id);
 
   res.status(200).json(deleteUser);
 
@@ -91,6 +91,13 @@ router.delete('/:id',uploadNone.none(),async(req,res,next)=>{
 
 
 })
+
+
+
+
+
+
+
 //usar multer para verificar
 /////////////////////7/////////////////////////////////////////////////////////////7
 /**

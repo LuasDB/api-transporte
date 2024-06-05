@@ -30,6 +30,6 @@ app.use(errorHandle);
 app.use('/descargas',express.static("imagen"));
 
 server.listen(port,()=>{
-    console.log('Servidor inicial');
+    console.log('SERVIDOR INICIADO EN PUERTO:',port);
 
 })

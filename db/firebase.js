@@ -14,6 +14,7 @@ admin.initializeApp({
   databaseURL: `https://${process.env.PROJECT_ID}.firebaseio.com`
 
 });
+
 const db = admin.firestore();
 
 
