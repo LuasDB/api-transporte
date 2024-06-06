@@ -50,16 +50,28 @@ router.get('/',async(req,res,next)=>{
    next(error)
   }
 })
-router.post('/',upload.fields([{name:'ine'},{name:'licencia'}]),async(req,res,next)=>{
+router.post('/',upload.any(),async(req,res,next)=>{
   try {
 
-    let data =req.body;
-    const files = req.files
-    if(!files || !files.ine || !files.licencia ){
-      return res.status(400).json({success:false,message:'No se recibieron los dos archivos'})
+    const {body,files} = req
+    let data ={}
+    console.log('[ARCHIVOS RECIBIDOS',files.length)
+    if(files.length !== 2){
+      res.status(400).json({success:false,message:`No se recibieron los dos archivos,se recibe ${files.length}`})
     }
+
+    files.forEach(item=>{
+      if(item.fieldname === 'ine'){
+        data['archivoIne']=item.filename
+      }
+      if(item.fieldname === 'licencia'){
+        data['archivoLicencia']=item.filename
+      }
+    })
+
+    data= {...data,...body}
     console.log('[RECIBIDO]:',data)
-    let create = await driver.create({archivoIne:files.ine[0].filename,archivoLicencia:files.licencia[0].filename,...data});
+    let create = await driver.create(data);
     //Si se realiza el alta enviamos un res con el status code 201 de CREADO , en formato json donde encviamos lo que llego a newUser
     res.status(201).json(create);
 
@@ -87,12 +99,24 @@ router.get('/:id',async(req,res,next)=>{
 
 
 })
-router.patch('/:id',uploadNone.none(),async(req,res,next)=>{
+router.patch('/:id',upload.any(),async(req,res,next)=>{
   const { id } = req.params
-  const { body } =req
+  const { body,files } =req
+  let obj ={}
+  if(files){
+    files.forEach(item=>{
+      if(item.fieldname === 'ine'){
+        obj['archivoIne']=item.filename
+      }
+      if(item.fieldname === 'licencia'){
+        obj['archivoLicencia']=item.filename
+      }
+    })
+  }
+  obj={...obj,...body}
 
   try {
-    const update = await driver.updateOne(id,body);
+    const update = await driver.updateOne(id,obj);
     res.status(200).json(update);
     console.log('[message]:',update.message)
 

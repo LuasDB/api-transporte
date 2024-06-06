@@ -4,7 +4,7 @@ const { db } = require('../db/firebase');
 //definicion de la clase con varios objetos
 class User {
   constructor(){
-
+    this.collection='users'
   }
 
 /*****************************************************************************************************************
@@ -24,7 +24,7 @@ class User {
   //Metodo de la calse para la creacion de un nuevo usuario
   async createUser(data){
     console.log('Lega:',data)
-    const addNewUser = await db.collection('users').add(data);
+    const addNewUser = await db.collection(this.collection).add(data);
     console.log(addNewUser)
     if(addNewUser.id){
       return {
@@ -39,8 +39,8 @@ class User {
     }
   }
   async getAll(){
-    const getUsers = await db.collection('users').where('status','==','Activo').get();
-    console.log('RECIVED',getUsers)
+    const getUsers = await db.collection(this.collection).where('status','==','Activo').get();
+
     const users = getUsers.docs.map(item => ({id:item.id,...item.data()}))
     return {
       success:true,
@@ -48,7 +48,7 @@ class User {
     }
   }
   async getOne(id){
-    const getUser = await db.collection('users').doc(id).get();
+    const getUser = await db.collection(this.collection).doc(id).get();
 
     if(!getUser.exists){
       return { success:false,message:'No encontrado'}
@@ -61,7 +61,7 @@ class User {
 
   }
   async updateOne(id,newData){
-    const update = await db.collection('users').doc(id).update(newData);
+    const update = await db.collection(this.collection).doc(id).update(newData);
     console.log(update)
     return { success:true, message:'Actualizado',data:update}
   }
