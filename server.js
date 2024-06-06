@@ -3,6 +3,8 @@ const routerAPI = require("./routes/index")
 
 //Mandamos a llamar a express para iniciar el servidor
 const express = require('express');
+//Para la gestion de directorios en el servidor
+const fs = require('fs');
 //Variable para el envio de informacion
 const {send} = require('process');
 //Se crea variable para llamar a las funciones de express
@@ -27,7 +29,8 @@ app.use(errorHandle);
 
 
 //Inicio de estaticos para poder renderizar los archivos de imagen
-app.use('/descargas',express.static("imagen"));
+
+app.use('/uploads',express.static("uploads"));
 
 server.listen(port,()=>{
     console.log('SERVIDOR INICIADO EN PUERTO:',port);
