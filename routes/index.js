@@ -5,6 +5,7 @@ const usersRouter = require("./users.router.js");
 //importar de la ruta truck
 const vehiclesRouter = require("./vehicles.router.js");
 const driversRouter = require('./drivers.router.js')
+const customersRouter = require('./customers.router.js')
 
 
 function routerApi(app){
@@ -13,5 +14,6 @@ function routerApi(app){
     router.use('/users',usersRouter);
     router.use('/vehicles',vehiclesRouter);
     router.use('/drivers',driversRouter);
+    router.use('/customers',customersRouter);
 }
 module.exports=routerApi;

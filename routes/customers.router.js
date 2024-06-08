@@ -3,7 +3,7 @@ const express = require('express');
 //Metodo router de express
 const router = express.Router();
 //importacion del servicio
-const Driver = require("../services/drivers.service.js");
+const Customer = require("../services/customers.service.js");
 //importar multer
 const multer = require('multer');
 //Creamos una instamcia de ,ulter para cuando no se reciben archivos
@@ -16,7 +16,7 @@ const fs = require('fs');
 //Definimos primero la carpeta de destino, usaremos la misma siempre pero con subcarpetas,para este endpoint usaremos
 //la subcarpeta drivers
 /**MODIFICAR EN CADA ENDPOINT**/
-const uploadDir = 'uploads/drivers'
+const uploadDir = 'uploads/customers'
 //Verificamos si la carpeta existe si no la creamos
 if(!fs.existsSync(uploadDir)){
   //metodo que crea el nuevo directorio
@@ -36,15 +36,15 @@ const storage = multer.diskStorage({
 })
 const upload = multer({ storage: storage });
 //crea nuevo instancia de la clase usuario
-const driver = new Driver();
+const customer = new Customer();
 /**
  * Endpoints (Rutas de para la funcion)
  */
 router.get('/',async(req,res,next)=>{
   //usamos siempre Try catch para cachear si llega a haber algun error en las funciones asincronas
   try {
-   const getAllDrivers = await driver.getAll()
-   res.status(200).json(getAllDrivers);
+   const getAll = await customer.getAll()
+   res.status(200).json(getAll);
 
   } catch (error) {
    next(error)
@@ -55,23 +55,23 @@ router.post('/',upload.any(),async(req,res,next)=>{
 
     const {body,files} = req
     let data ={}
-
-
     if(files){
       console.log('[FILE RECIVED]')
       files.forEach(item=>{
-        if(item.fieldname === 'ine'){
-          data['archivoIne']=item.filename
+        console.log('[CAMPO]',item.fieldname)
+        //Aqui podemos agregar los archivos que sean necesarios e indicar como se van a llamar
+        if(item.fieldname === 'constanciaRfc'){
+          console.log('[ADD TO OBJECT]')
+          data['constanciaRfc']=item.filename
         }
-        if(item.fieldname === 'licencia'){
-          data['archivoLicencia']=item.filename
-        }
+
       })
+
     }
 
-    data= {...data,...body}
+    data= {...body,...data}
     console.log('[RECIBIDO]:',data)
-    let create = await driver.create(data);
+    let create = await customer.create(data);
     //Si se realiza el alta enviamos un res con el status code 201 de CREADO , en formato json donde encviamos lo que llego a newUser
     res.status(201).json(create);
 
@@ -87,7 +87,7 @@ router.get('/:id',async(req,res,next)=>{
     const { id } = req.params
     try {
       //Declaramos una variable donde recibirtemos lo que retorne el metodo getOne(id) de la instancia user
-    const getOne = await driver.getOne(id);
+    const getOne = await customer.getOne(id);
     //Si se recibe bien enviamos de vuelta usando res
     res.status(200).json(getOne);
 
@@ -102,21 +102,19 @@ router.get('/:id',async(req,res,next)=>{
 router.patch('/:id',upload.any(),async(req,res,next)=>{
   const { id } = req.params
   const { body,files } =req
-  let obj ={}
+
+  let data ={}
   if(files){
     files.forEach(item=>{
-      if(item.fieldname === 'ine'){
-        obj['archivoIne']=item.filename
-      }
-      if(item.fieldname === 'licencia'){
-        obj['archivoLicencia']=item.filename
+      if(item.fieldname === 'constanciaRfc'){
+        data['constanciaRfc']=item.filename
       }
     })
   }
-  obj={...body,...obj}
+  data={...body,...data}
 
   try {
-    const update = await driver.updateOne(id,obj);
+    const update = await customer.updateOne(id,data);
     res.status(200).json(update);
     console.log('[message]:',update.message)
 
@@ -130,16 +128,13 @@ router.delete('/:id',async(req,res,next)=>{
 
   try {
 
-  const deleteUser = await driver.deleteOne(id);
+  const deleteUser = await customer.deleteOne(id);
 
   res.status(200).json(deleteUser);
 
   } catch (error) {
    next(error)
   }
-
-
-
 
 })
 
