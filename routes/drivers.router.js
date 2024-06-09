@@ -102,7 +102,7 @@ router.get('/:id',async(req,res,next)=>{
 router.patch('/:id',upload.any(),async(req,res,next)=>{
   const { id } = req.params
   const { body,files } =req
-  let obj ={}
+  let data ={}
   if(files){
     files.forEach(item=>{
       if(item.fieldname === 'ine'){
@@ -113,10 +113,10 @@ router.patch('/:id',upload.any(),async(req,res,next)=>{
       }
     })
   }
-  obj={...body,...obj}
+  data={...body,...data}
 
   try {
-    const update = await driver.updateOne(id,obj);
+    const update = await driver.updateOne(id,data);
     res.status(200).json(update);
     console.log('[message]:',update.message)
 

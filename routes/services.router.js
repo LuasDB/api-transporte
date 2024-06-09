@@ -3,7 +3,7 @@ const express = require('express');
 //Metodo router de express
 const router = express.Router();
 //importacion del servicio
-const Vehicle = require("../services/vehicles.service.js");
+const Service = require("../services/services.service.js");
 //importar multer
 const multer = require('multer');
 //Creamos una instamcia de ,ulter para cuando no se reciben archivos
@@ -16,7 +16,7 @@ const fs = require('fs');
 //Definimos primero la carpeta de destino, usaremos la misma siempre pero con subcarpetas,para este endpoint usaremos
 //la subcarpeta drivers
 /**MODIFICAR EN CADA ENDPOINT**/
-const uploadDir = 'uploads/vehicles'
+const uploadDir = 'uploads/services'
 //Verificamos si la carpeta existe si no la creamos
 if(!fs.existsSync(uploadDir)){
   //metodo que crea el nuevo directorio
@@ -29,41 +29,60 @@ const storage = multer.diskStorage({
   },
   filename:(req,file,cb)=>{
     const identificador = Date.now() + '-' + Math.round(Math.random()*1E9)
+
+
     cb(null,file.fieldname + '_' + identificador + path.extname(file.originalname))
   }
 })
 const upload = multer({ storage: storage });
 //crea nuevo instancia de la clase usuario
-const vehicle = new Vehicle();
+const service = new Service();
 /**
  * Endpoints (Rutas de para la funcion)
  */
 router.get('/',async(req,res,next)=>{
   //usamos siempre Try catch para cachear si llega a haber algun error en las funciones asincronas
   try {
-   const getAll = await vehicle.getAll()
+   const getAll = await service.getAll()
    res.status(200).json(getAll);
 
   } catch (error) {
    next(error)
   }
 })
+router.get('/aggregate',async(req,res,next)=>{
+  //usamos siempre Try catch para cachear si llega a haber algun error en las funciones asincronas
+  try {
+   const getAll = await service.getAggregate()
+   res.status(200).json(getAll);
+
+  } catch (error) {
+   next(error)
+  }
+})
+
 router.post('/',upload.any(),async(req,res,next)=>{
   try {
+
     const {body,files} = req
     let data ={}
     if(files){
+      console.log('[FILE RECIVED]')
       files.forEach(item=>{
-        if(item.fieldname === 'tarjeta'){
-          data['archivoTarjeta']=item.filename
+        console.log('[CAMPO]',item.fieldname)
+        //Aqui podemos agregar los archivos que sean necesarios e indicar como se van a llamar
+        if(item.fieldname === 'constanciaRfc'){
+          console.log('[ADD TO OBJECT]')
+          data['constanciaRfc']=item.filename
         }
-        if(item.fieldname === 'fotoVehiculo'){
-          data['fotoVehiculo']=item.filename
-        }
+
       })
+
     }
+
     data= {...body,...data}
-    let create = await vehicle.create({...body,...data});
+    console.log('[RECIBIDO]:',data)
+    let create = await service.create(data);
     //Si se realiza el alta enviamos un res con el status code 201 de CREADO , en formato json donde encviamos lo que llego a newUser
     res.status(201).json(create);
 
@@ -79,7 +98,7 @@ router.get('/:id',async(req,res,next)=>{
     const { id } = req.params
     try {
       //Declaramos una variable donde recibirtemos lo que retorne el metodo getOne(id) de la instancia user
-    const getOne = await vehicle.getOne(id);
+    const getOne = await service.getOne(id);
     //Si se recibe bien enviamos de vuelta usando res
     res.status(200).json(getOne);
 
@@ -94,22 +113,21 @@ router.get('/:id',async(req,res,next)=>{
 router.patch('/:id',upload.any(),async(req,res,next)=>{
   const { id } = req.params
   const { body,files } =req
+
   let data ={}
   if(files){
     files.forEach(item=>{
-      if(item.fieldname === 'tarjeta'){
-        data['archivoTarjeta']=item.filename
-      }
-      if(item.fieldname === 'fotoVehiculo'){
-        data['fotoVehiculo']=item.filename
+      if(item.fieldname === 'constanciaRfc'){
+        data['constanciaRfc']=item.filename
       }
     })
   }
   data={...body,...data}
-  try {
-    const update = await vehicle.updateOne(id,data);
-    res.status(200).json(update);
 
+  try {
+    const update = await service.updateOne(id,data);
+    res.status(200).json(update);
+    console.log('[message]:',update.message)
 
   } catch (error) {
     next(error)
@@ -121,16 +139,13 @@ router.delete('/:id',async(req,res,next)=>{
 
   try {
 
-  const deleteOne = await vehicle.deleteOne(id);
+  const deleteUser = await service.deleteOne(id);
 
-  res.status(200).json(deleteOne);
+  res.status(200).json(deleteUser);
 
   } catch (error) {
    next(error)
   }
-
-
-
 
 })
 
