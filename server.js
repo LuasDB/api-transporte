@@ -19,13 +19,16 @@ const cors = require('cors')
 const { logErrors, errorHandle } = require('./middleware/error.handler')
 
 
+
 app.use(cors());
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }));
 routerAPI(app);
 
 //Aqui vamos a declarar los middlewares
 app.use(logErrors);
 app.use(errorHandle);
+
 
 
 //Inicio de estaticos para poder renderizar los archivos de imagen

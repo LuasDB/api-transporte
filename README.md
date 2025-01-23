@@ -3,28 +3,11 @@ API REST para aplicación de gestión de servicios de transporte
 
 # Formato de variables de entorno:
 URL_SERVER= URL DEL SERVIDOR 
+EMAIL_USER=Correo desde donde se enviaran los correos automaticos
+EMAIL_PASS= Contraseña del correo desde donde se enviaran los correos
+JWT_SECRET=Clave secreta para Token
+CLIENT_URL=url desde donde esta alojada la pagina para reestablecer contraseña(Puede ser la misma de la aplicacion que consume la app)
 
 # para Firebase
-API_KEY= API_KEY_PROPORCIONAD_POR_FIREBASE
-AUTH_DOMAIN=AUTH_FIREBASE
-PROJECT_ID=PROJECT_ID_FIREBASE
-STORAGE_BUCKET=STORAGE_BUCKET_FIREBASE
-MESSAGING_SENDER_ID=MESSAGING_SENDER
-APP_ID=APP_ID_FIREBASE
-
-# Para la instralación de FIREBASE
-1. Crear el proyecto en FIREBASE
-2. Instalar FIREBASE CLI que es una herramienta de ddesarrollo:
-  ```sh
-  npm install -g firebase-tools
-  firebase login
-  firebase init
-
-  \```
-
-3. Instalar el SDK de firebase:
-  ```sh
-  npm install firebase-admin
-  \```
-
+Se debe colocar en la raiz en el servidor las credenciales proporcionadas por firebase en formato json
 

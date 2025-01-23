@@ -1,159 +1,247 @@
-//llamado de express
 const express = require('express');
-//Metodo router de express
+const Boom = require('@hapi/boom')
+const { server } = require('../db/firebase')
+
+
 const router = express.Router();
-//importacion del servicio
+const {configureUploadServices} = require('./../middleware/configureUpload.js')
+
 const Service = require("../services/services.service.js");
-//importar multer
-const multer = require('multer');
-//Creamos una instamcia de ,ulter para cuando no se reciben archivos
-const uploadNone = multer();
-//Para la manipulación de carpetas y archivos usamos estas instancias
-const path = require('path');
-const fs = require('fs');
-//configuramos el storage de multer para la subida de archivos
-
-//Definimos primero la carpeta de destino, usaremos la misma siempre pero con subcarpetas,para este endpoint usaremos
-//la subcarpeta drivers
-/**MODIFICAR EN CADA ENDPOINT**/
-const uploadDir = 'uploads/services'
-//Verificamos si la carpeta existe si no la creamos
-if(!fs.existsSync(uploadDir)){
-  //metodo que crea el nuevo directorio
-  fs.mkdirSync(uploadDir,{recursive:true})
-}
-
-const storage = multer.diskStorage({
-  destination:(req,file,cb)=>{
-    cb(null,uploadDir)
-  },
-  filename:(req,file,cb)=>{
-    const identificador = Date.now() + '-' + Math.round(Math.random()*1E9)
-
-
-    cb(null,file.fieldname + '_' + identificador + path.extname(file.originalname))
-  }
-})
-const upload = multer({ storage: storage });
-//crea nuevo instancia de la clase usuario
 const service = new Service();
-/**
- * Endpoints (Rutas de para la funcion)
- */
-router.get('/',async(req,res,next)=>{
-  //usamos siempre Try catch para cachear si llega a haber algun error en las funciones asincronas
-  try {
-   const getAll = await service.getAll()
-   res.status(200).json(getAll);
 
-  } catch (error) {
-   next(error)
-  }
-})
-router.get('/aggregate',async(req,res,next)=>{
-  //usamos siempre Try catch para cachear si llega a haber algun error en las funciones asincronas
-  try {
-   const getAll = await service.getAggregate()
-   res.status(200).json(getAll);
+router.post('/', configureUploadServices ,(req,res,next)=>{
+  const uploadMiddleware = req.upload.any()
 
-  } catch (error) {
-   next(error)
-  }
-})
+  uploadMiddleware(req,res,async(err)=>{
+    if(err){
+      return next(Boom.badRequest(err.message))
+    }
 
-router.post('/',upload.any(),async(req,res,next)=>{
-  try {
-
-    const {body,files} = req
+    const { body, files } = req
     let data ={}
     if(files){
-      console.log('[FILE RECIVED]')
       files.forEach(item=>{
-        console.log('[CAMPO]',item.fieldname)
-        //Aqui podemos agregar los archivos que sean necesarios e indicar como se van a llamar
-        if(item.fieldname === 'constanciaRfc'){
-          console.log('[ADD TO OBJECT]')
-          data['constanciaRfc']=item.filename
-        }
-
+        data[item.fieldname] = `${server}uploads/services/${item.filename}`
       })
-
     }
+    data ={...body,...data}
 
-    data= {...body,...data}
-    console.log('[RECIBIDO]:',data)
-    let create = await service.create(data);
-    //Si se realiza el alta enviamos un res con el status code 201 de CREADO , en formato json donde encviamos lo que llego a newUser
-    res.status(201).json(create);
-
-  } catch (error) {
-    next(error)
-  }
-
-
-})
-router.get('/:id',async(req,res,next)=>{
-
-    //Se destructurar req.params para sacar la variable "id" que viene descrita en la url del endpoint
-    const { id } = req.params
     try {
-      //Declaramos una variable donde recibirtemos lo que retorne el metodo getOne(id) de la instancia user
-    const getOne = await service.getOne(id);
-    //Si se recibe bien enviamos de vuelta usando res
-    res.status(200).json(getOne);
-
+      const create = await service.create(data)
+      res.status(201).json({
+        success:true,
+        message:'Registro creado correctamente',
+        data:create
+      })
     } catch (error) {
-      next(error)
+      next(Boom.internal('Algo salio mal al intentar crear el registro',error.message))
+    }
+  })
+})
+
+router.get('/',async(req,res,next)=>{
+  try {
+    const services = await service.getAll()
+    if(!services){
+      return next(Boom.notFound('No se encotraron registros '))
+    }
+    res.status(200).json({
+      success:true,
+      data:services
+    })
+  } catch (error) {
+    return next(Boom.internal('Algo salio mal al buscar los registros', error))
+
+  }
+})
+
+router.get('/:id',async(req,res,next)=>{
+  const { id } = req.params
+  try {
+    const oneService = await service.getOne(id)
+    if(!oneService){
+      return next(Boom.notFound('Registro no encontrado'));
+    }
+    res.status(200).json({
+      success:true,
+      data:oneService
+    })
+  } catch (error) {
+    next(Boom.internal('Algo salio mal al intentar obtener el registro', error));
+  }
+})
+
+router.patch('/:id', configureUploadServices,(req,res,next)=>{
+  const uploadMiddleware = req.upload.any()
+
+  uploadMiddleware(req,res,async(err)=>{
+    if(err){
+      return next(Boom.badRequest(err.message))
+    }
+
+    const { body, files } = req
+    const { id } = req.params
+
+    let data ={}
+    if(files){
+      files.forEach(item=>{
+        data[item.fieldname] = `${item.filename}`
+      })
+    }
+    data ={...body,...data}
+
+
+    try {
+      const update = await service.updateOne(id,data)
+      if (!update) {
+        return next(Boom.notFound('No se encontro el registro'));
+      }
+      res.status(201).json({
+        success:true,
+        message:'Registro creado correctamente',
+      })
+    } catch (error) {
+      next(Boom.internal('Algo salio mal al intentar modificar el registro',error.message))
+    }
+  })
+})
+
+router.delete('/:id', async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    const deleted = await service.deleteOne( id);
+    if (!deleted) {
+      return next(Boom.notFound('No se encontro el registro'));
+    }
+    res.status(200).json({
+      success: true,
+      message: 'Se elimino correctamente'
+    });
+  } catch (error) {
+    next(Boom.internal('Algo salio mal al intentar eliminar el registro', error));
+  }
+});
+
+router.get('/new/form-data',async(req,res,next)=>{
+  try {
+    const formData = await service.getFormData()
+    if(!formData){
+      return next(Boom.notFound('No se encotraron registros '))
+    }
+    res.status(200).json({
+      success:true,
+      data:formData
+    })
+  } catch (error) {
+    return next(Boom.internal('Algo salio mal al buscar los registros', error))
+
+  }
+})
+
+router.patch('/add/new/deposits/:id', configureUploadServices,(req,res,next)=>{
+  const uploadMiddleware = req.upload.any()
+
+  uploadMiddleware(req,res,async(err)=>{
+    if(err){
+      return next(Boom.badRequest(err.message))
+    }
+
+    const { body, files } = req
+    const { id } = req.params
+
+    let data ={}
+    if(files){
+      files.forEach(item=>{
+        data[item.fieldname] = `${server}uploads/services/${item.filename}`
+      })
+    }
+    data ={...body,...data}
+
+
+    try {
+      const update = await service.updateOneDeposit(id,data)
+      if (!update) {
+        return next(Boom.notFound('No se encontro el registro'));
+      }
+      res.status(201).json({
+        success:true,
+        message:'Registro creado correctamente',
+        data:update
+      })
+    } catch (error) {
+      next(Boom.internal('Algo salio mal al intentar modificar el registro',error.message))
+    }
+  })
+})
+
+router.get('/services/for/pay/',async(req,res,next)=>{
+  try {
+    const services = await service.getAllForPay()
+    if(!services){
+      return next(Boom.notFound('No se encotraron registros '))
+    }
+    res.status(200).json({
+      success:true,
+      data:services
+    })
+  } catch (error) {
+    return next(Boom.internal('Algo salio mal al buscar los registros', error))
+
+  }
+})
+
+router.get('/services/for/year/:year',async(req,res,next)=>{
+  try {
+    const {year} = req.params
+    const services = await service.getAllForYear(year)
+    if(!services){
+      return next(Boom.notFound('No se encotraron registros '))
+    }
+    res.status(200).json({
+      success:true,
+      data:services
+    })
+  } catch (error) {
+    return next(Boom.internal('Algo salio mal al buscar los registros', error))
+
+  }
+})
+
+router.patch('/update/finished/service/:id',configureUploadServices,(req,res,next)=>{
+  const uploadMiddleware = req.upload.any()
+
+  uploadMiddleware(req,res,async(error)=>{
+    if(error){
+      return next(Boom.badRequest(err.message))
+    }
+
+    const { body,files } = req
+    const {id } = req.params
+
+    let data = {}
+
+    files.forEach(file =>{
+      data[file.fieldname] = file.filename
+    })
+    data={...body,...data}
+
+    try {
+      const finish = await service.finishService(id,data)
+
+      res.status(200).json({
+        success:true,
+        message:'Actualizado',
+        data:finish
+      })
+    } catch (error) {
+      next(Boom.internal('Algo salio mal al intentar modificar el registro',error.message))
     }
 
 
 
-
+  })
 })
-router.patch('/:id',upload.any(),async(req,res,next)=>{
-  const { id } = req.params
-  const { body,files } =req
-
-  let data ={}
-  if(files){
-    files.forEach(item=>{
-      if(item.fieldname === 'constanciaRfc'){
-        data['constanciaRfc']=item.filename
-      }
-    })
-  }
-  data={...body,...data}
-
-  try {
-    const update = await service.updateOne(id,data);
-    res.status(200).json(update);
-    console.log('[message]:',update.message)
-
-  } catch (error) {
-    next(error)
-  }
-})
-router.delete('/:id',async(req,res,next)=>{
-
-  const { id } = req.params
-
-  try {
-
-  const deleteUser = await service.deleteOne(id);
-
-  res.status(200).json(deleteUser);
-
-  } catch (error) {
-   next(error)
-  }
-
-})
-
-
-
-
-
-
 
 
 

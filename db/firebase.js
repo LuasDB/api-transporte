@@ -7,18 +7,17 @@ const server = process.env.URL_SERVER
 //** OTRO MODO PARA UTILIZAR FIREBASE */
 const admin = require('firebase-admin');
 // const serviceAccount = require('./paginasaul-eabef-firebase-adminsdk-3o5l4-71f2ad441d.json');
-const firebaseConfig = require('./firebaseConf')
+const firebaseConfig = require('./../servicios-transporte.json')
 
 admin.initializeApp({
   credential: admin.credential.cert(firebaseConfig),
-  databaseURL: `https://${process.env.PROJECT_ID}.firebaseio.com`
-
 });
 
 const db = admin.firestore();
+const updateArrays = admin.firestore.FieldValue
 
 
-module.exports = {db,server}
+module.exports = {db,server,updateArrays}
 
 
 

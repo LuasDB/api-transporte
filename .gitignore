@@ -131,4 +131,5 @@ dist
 
 imagen/
 uploads/
-credentials.json
+credentialsSamar.json
+servicios-transporte.json
