@@ -162,13 +162,14 @@ class Service{
       console.log('---Se recibio la finalizacion--')
 
       const service = await this.getOne(id);
-      console.log(service)
+
       await db.collection('drivers').doc(service.chofer).update({
         esDisponible:'Disponible',
         serviciosActivos: updateArrays.arrayUnion(id)
     });
       await db.collection('vehicles').doc(service.unidad).update({esDisponible:'Disponible'})
       await db.collection('boxes').doc(service.caja).update({esDisponible:'Disponible'})
+      await this.updateOne(id,data)
 
 
 

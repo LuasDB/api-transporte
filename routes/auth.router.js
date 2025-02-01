@@ -8,7 +8,7 @@ const Auth = require('../services/auth.service')
 const auth = new Auth();
 
 
-router.post('/login',uploadNone.none(),async(req,res)=>{
+router.post('/login',async(req,res)=>{
 
  try {
   const login = await auth.login(req.body)
@@ -27,6 +27,7 @@ router.post('/register',async(req,res,next)=>{
     res.status(201).json(register)
 
   } catch (error) {
+
    next(error)
   }
 })
@@ -41,10 +42,10 @@ router.get('/users',async(req,res)=>{
 })
 
 router.post('/sol-password',async(req,res)=>{
+  console.log('Se toco aqui')
   try {
     const users = await auth.solPassword(req.body);
-    console.log('RES',users)
-    res.status(users.status).json(users)
+    res.status(200).json(users)
   } catch (error) {
     res.status(500).json({success:false, error})
   }
@@ -71,12 +72,12 @@ router.patch('/users/:id',uploadNone.none(),async(req,res)=>{
   }
 })
 
-router.post('/reset-password',uploadNone.none(), async (req, res) => {
+router.post('/reset-password', async (req, res,next) => {
   try {
     const resetPass = await auth.resetPassword(req.body)
-    res.status(resetPass.status).json(resetPass);
+    res.status(200).json(resetPass);
   } catch (error) {
-    res.status(resetPass.status).json({success:false, message:error});
+    next(error)
   }
 });
 
