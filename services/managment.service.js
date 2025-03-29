@@ -1,103 +1,94 @@
-const { db,server } = require('../db/firebase')
+const { MongoClient, ObjectId } = require("mongodb");
 
-class Managment{
-  constructor(){
+const url = process.env.URL_MONGODB;
+const client = new MongoClient(url);
+const dbName = "servicios_nuevaImagen";
 
+class Managment {
+  constructor() {
+    this.client = client;
+    this.db = this.client.db(dbName);
   }
-  async create(collection, data){
 
+  async connect() {
+    if (!this.client.topology || !this.client.topology.isConnected()) {
+      await this.client.connect();
+      console.log("MongoDB Connected");
+    }
+  }
+
+  async create(collection, data) {
     try {
-      data['createdAt']= new Date().toISOString()
+      await this.connect();
+      data.createdAt = new Date().toISOString();
 
-      const newDoc = await db.collection(collection).add(data)
-      return {
-        id:newDoc.id
-      }
+      const result = await this.db.collection(collection).insertOne(data);
+      return { id: result.insertedId };
     } catch (error) {
       throw new Error(`Failed to create document: ${error.message}`);
     }
   }
+
   async getAll(collection) {
     try {
-      const docs = await db.collection(collection).get();
-      if(docs.empty){
-        return null
-      }
-      const data = docs.docs.map(item=>({id:item.id,...item.data()}))
-      return [...data];
+      await this.connect();
+      const docs = await this.db.collection(collection).find({}).toArray();
+      return docs.length > 0 ? docs : null;
     } catch (error) {
-      throw new Error(`Algo salio mal al obtener los registros: ${error.message}`);
+      throw new Error(`Error fetching documents: ${error.message}`);
     }
   }
 
   async getOne(collection, id) {
     try {
-      const doc = await db.collection(collection).doc(id).get();
-      if (!doc.exists) {
-        return null;
-      }
-      return { id: doc.id, ...doc.data() };
+      console.log('desde getOne',collection,id)
+      await this.connect();
+      const doc = await this.db.collection(collection).findOne({ _id: new ObjectId(id) });
+      return doc || null;
     } catch (error) {
-      throw new Error(`Algo salio mal al obtener el registro: ${error.message}`);
+      throw new Error(`Error fetching document: ${error.message}`);
     }
   }
 
   async update(collection, id, updates) {
     try {
-      const docRef = db.collection(collection).doc(id);
-      await docRef.update(updates);
-      const updatedDoc = await docRef.get();
-      if (!updatedDoc.exists) {
-        return null;
-      }
-      return { id: updatedDoc.id, ...updatedDoc.data() };
+      await this.connect();
+      const result = await this.db.collection(collection).updateOne(
+        { _id: id },
+        { $set: updates }
+      );
+
+      return result.modifiedCount > 0 ? this.getOne(collection, id) : null;
     } catch (error) {
       throw new Error(`Failed to update document: ${error.message}`);
     }
   }
 
+  async getAllCollections() {
+    console.log('-----------------------------');
+    const collections = ['users', 'vehicles', 'drivers', 'boxes'];
+    const results = await Promise.all(collections.map(col => this.getAll(col)));
+    return Object.fromEntries(collections.map((col, i) => [col, results[i] || []]));
+  }
+
   async delete(collection, id) {
     try {
-      const docRef = db.collection(collection).doc(id);
-      const doc = await docRef.get();
-      if (!doc.exists) {
-        return null;
-      }
-      await this.update(collection,id,{status:'Baja'});
-      return true;
+      await this.connect();
+      const result = await this.db.collection(collection).updateOne(
+        { _id: id },
+        { $set: { status: "Baja" } }
+      );
+
+      return result.modifiedCount > 0;
     } catch (error) {
       throw new Error(`Failed to delete document: ${error.message}`);
     }
   }
 
-  async getAllCollections(){
-    console.log('-----------------------------')
-
-    let users = await this.getAll('users')
-    if(users === null){
-      users=[]
-    }
-
-    let vehicles = await this.getAll('vehicles')
-    if(vehicles === null){
-      vehicles=[]
-    }
-
-    let drivers = await this.getAll('drivers')
-    if(drivers === null){
-      drivers=[]
-    }
-    let boxes = await this.getAll('boxes')
-    if(boxes === null){
-      boxes=[]
-    }
-
-    return {
-      users,vehicles,drivers,boxes
-    }
+  async close() {
+    await this.client.close();
+    console.log("MongoDB Connection Closed");
   }
-
-
 }
 
-module.exports = Managment
+module.exports = Managment;

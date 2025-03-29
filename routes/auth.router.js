@@ -21,6 +21,7 @@ router.post('/login',async(req,res)=>{
 })
 
 router.post('/register',async(req,res,next)=>{
+  console.log(req.body)
 
   try {
     const register = await auth.create(req.body);

@@ -175,6 +175,25 @@ router.patch('/add/new/deposits/:id', configureUploadServices,(req,res,next)=>{
   })
 })
 
+router.patch('/add/new/expenses/:id',async(req,res,next)=>{
+  const { body } = req
+  const { id } = req.params
+
+  try {
+    const update = await service.updateOneExpenses(id,body)
+    if (!update) {
+      return next(Boom.notFound('No se encontro el registro'));
+    }
+    res.status(201).json({
+      success:true,
+      message:'Registro creado correctamente',
+      data:update
+    })
+  } catch (error) {
+    next(Boom.internal('Algo salio mal al intentar modificar el registro',error.message))
+  }
+})
+
 router.get('/services/for/pay/',async(req,res,next)=>{
   try {
     const services = await service.getAllForPay()
@@ -205,6 +224,22 @@ router.get('/services/for/year/:year',async(req,res,next)=>{
   } catch (error) {
     return next(Boom.internal('Algo salio mal al buscar los registros', error))
 
+  }
+})
+
+router.get('/drivers/for/pay/:idDriver',async(req,res,next)=>{
+  try {
+    const { idDriver } = req.params
+    const services = await service.getDriverPays(idDriver)
+    if(!services){
+      return next(Boom.notFound('No se encotraron registros '))
+    }
+    res.status(200).json({
+      success:true,
+      data:services
+    })
+  } catch (error) {
+    next(Boom.internal('Algo salio mal al buscar los registros', error))
   }
 })
 
